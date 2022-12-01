@@ -2,8 +2,10 @@
 # Authors: Arihant Gaur and Saurabh Kemekar
 # Organization: IvLabs, VNIT
 # Modified by Dr. coder
+
 import cv2
 import numpy as np
+import pandas as pd
 import os
 from scipy.optimize import least_squares
 import copy
@@ -12,7 +14,16 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 # Input Camera Intrinsic Parameters
-K = np.array([[2393.952166119461, -3.410605131648481e-13, 932.3821770809047], [0, 2398.118540286656, 628.2649953288065],
+# K = np.array([[2393.952166119461, -3.410605131648481e-13, 932.3821770809047], [0, 2398.118540286656, 628.2649953288065],
+#               [0, 0, 1]])
+img_dir = "C:\\Users\\asalehit\OneDrive - University of New Brunswick\\UNB\\PhD Thesis\\Scripts\Matlab\\" \
+          "Track_K02 - Copy"
+# Camera Internal orientation parameters including image folder
+int_ort = pd.read_csv(os.path.join(img_dir + "\\Internal Orientation.csv"), header=None, converters = 'dict')
+int_ort.loc[15].iat[1]
+
+
+K = np.array([[int_ort.loc[15].iat[1], 0, int_ort.loc[13].iat[1]], [0, int_ort.loc[16].iat[1], int_ort.loc[14].iat[1]],
               [0, 0, 1]])
 
 # Suppose if computationally heavy, then the images can be downsampled once. Note that downsampling is done in powers
@@ -29,7 +40,8 @@ path = os.getcwd()
 # Input the directory where the images are kept. Note that the images have to be named in order for this particular
 # implementation img_dir = path + '/Sample Dataset/'
 # img_dir = '/home/arihant/Desktop/gustav/'
-img_dir = 'data/images'
+# img_dir = 'data/images'
+
 
 # A provision for bundle adjustment is added, for the newly added points from PnP, before being saved into point
 # cloud. Note that it is still extremely slow
@@ -201,7 +213,7 @@ def to_ply(path, point_cloud, colors, densify):
             f.write(ply_header % dict(vert_num=len(verts)))
             np.savetxt(f, verts, '%f %f %f %d %d %d')
     else:
-        with open(path + '/Point_Cloud/dense.ply', 'w') as f:
+        with open(path + '/Point_Cloud/dense_02.ply', 'w') as f:
             f.write(ply_header % dict(vert_num=len(verts)))
             np.savetxt(f, verts, '%f %f %f %d %d %d')
 
@@ -217,7 +229,6 @@ def camera_orientation(path, mesh, R_T, i):
     # new_mesh.scale(0.5, center=new_mesh.get_center())
     o3d.io.write_triangle_mesh(path + "/Point_Cloud/camerapose" + str(i) + '.ply', new_mesh)
     return
-
 
 def common_points(pts1, pts2, pts3):
     '''Here pts1 represent the points image 2 find during 1-2 matching
